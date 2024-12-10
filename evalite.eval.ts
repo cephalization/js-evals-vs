@@ -1,7 +1,13 @@
 // my-eval.eval.ts
 import OpenAI from "openai";
 import { evalite } from "evalite";
-import { Levenshtein, Factuality, JSONDiff } from "autoevals";
+import {
+  Levenshtein,
+  Factuality,
+  JSONDiff,
+  Scorer,
+  LLMClassifierArgs,
+} from "autoevals";
 import Instructor from "@instructor-ai/instructor";
 import { z } from "zod";
 
@@ -30,28 +36,56 @@ enum CLASSIFICATION_LABELS {
 const SimpleClassificationSchema = z.object({
   class_label: z
     .nativeEnum(CLASSIFICATION_LABELS)
-    .describe("The classification of the input text"),
+    .describe(
+      "The classification of the input text. Does it look like spam or not?"
+    ),
+  reasoning: z
+    .string()
+    .describe("The reasoning behind the classification")
+    .optional(),
 });
 
 /*
  * Create classification function that be used as a task
  */
 
-async function classify(data: string): Promise<string> {
+async function classify(data: string) {
   const classification = await instructor.chat.completions.create({
     messages: [
       { role: "user", content: `"Classify the following text: ${data}` },
     ],
     model: MODEL,
-    max_retries: 3,
+    max_retries: 5,
     response_model: {
       schema: SimpleClassificationSchema,
       name: "spam_classifier",
     },
   });
 
-  return classification?.class_label;
+  return classification;
 }
+
+const classifyJudge: Scorer<
+  string,
+  LLMClassifierArgs<{
+    input: string;
+    output: string;
+    expected?: string;
+  }>
+> = async ({ output }) => {
+  const classification = await classify(output);
+  const isSpam = classification.class_label === CLASSIFICATION_LABELS.SPAM;
+  const reason = classification.reasoning;
+  return {
+    name: "classify_judge",
+    score: isSpam ? 1 : 0,
+    reason,
+    metadata: {
+      isSpam,
+      reason,
+    },
+  };
+};
 
 /*
  * Create a wrapper for autoeval scorers that configures them for ollama
@@ -91,7 +125,7 @@ evalite("My Eval", {
   // The task to perform
   task: async (input) => {
     if (input.startsWith("CLASSIFY:")) {
-      return classify(input.split("CLASSIFY:")[1].trim());
+      return (await classify(input.split("CLASSIFY:")[1].trim())).class_label;
     }
     const response = await openai.chat.completions.create({
       model: MODEL,
@@ -107,5 +141,5 @@ evalite("My Eval", {
     return response.choices[0].message.content || "";
   },
   // The scoring methods for the eval
-  scorers: [Levenshtein, withOllama(Factuality), JSONDiff],
+  scorers: [Levenshtein, withOllama(Factuality), JSONDiff, classifyJudge],
 });
