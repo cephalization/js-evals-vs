@@ -2,6 +2,8 @@
 
 Test out the current landscape of LLM evaluation in TS.
 
+Top level TS files will center around some evaluation framework, within which many libraries to fascilitate tasks and scorers are imported and tested.
+
 ## How to use
 
 - Install node v20, pnpm
