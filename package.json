@@ -1,0 +1,22 @@
+{
+  "name": "js-evaluation-vs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "evalite": "evalite watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "autoevals": "^0.0.108",
+    "evalite": "^0.6.0",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "@instructor-ai/instructor": "^1.5.0",
+    "openai": "^4.76.0",
+    "zod": "^3.24.0"
+  }
+}
