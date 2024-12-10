@@ -1,6 +1,6 @@
-// my-eval.eval.ts
+// braintrust.eval.ts
 import OpenAI from "openai";
-import { evalite } from "evalite";
+import { Eval } from "braintrust";
 import {
   Levenshtein,
   Factuality,
@@ -19,7 +19,7 @@ const MODEL = "llama3.2";
 
 const openai = new OpenAI({
   baseURL: "http://localhost:11434/v1",
-  apiKey: "TEST",
+  apiKey: "OLLAMA",
 });
 
 const instructor = Instructor({ client: openai, mode: "TOOLS" });
@@ -95,12 +95,13 @@ const withOllama = (scorer: any) => {
   return (args: any) =>
     scorer({
       ...args,
+      openAiApiKey: "OLLAMA",
       openAiBaseUrl: "http://localhost:11434/v1",
       model: MODEL,
     });
 };
 
-evalite("My Eval", {
+Eval("My Eval", {
   // A function that returns an array of test data
   data: async () => {
     return [
@@ -120,6 +121,9 @@ evalite("My Eval", {
   },
   // The task to perform
   task: async (input) => {
+    if (typeof input !== "string") {
+      throw new Error("Input must be a string");
+    }
     if (input.startsWith("CLASSIFY:")) {
       return (await classify(input.split("CLASSIFY:")?.[1]?.trim() ?? ""))
         .class_label;
@@ -138,5 +142,5 @@ evalite("My Eval", {
     return response.choices?.[0]?.message?.content || "";
   },
   // The scoring methods for the eval
-  scorers: [Levenshtein, withOllama(Factuality), JSONDiff, classifyJudge],
+  scores: [Levenshtein, withOllama(Factuality), JSONDiff, classifyJudge],
 });

@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "evalite": "evalite watch"
+    "evalite": "evalite watch",
+    "braintrust": "tsx braintrust.ts"
   },
   "keywords": [],
   "author": "",
@@ -12,10 +14,12 @@
   "devDependencies": {
     "autoevals": "^0.0.108",
     "evalite": "^0.6.0",
+    "tsx": "^4.19.2",
     "vitest": "^2.1.8"
   },
   "dependencies": {
     "@instructor-ai/instructor": "^1.5.0",
+    "braintrust": "^0.0.175",
     "openai": "^4.76.0",
     "zod": "^3.24.0"
   }
