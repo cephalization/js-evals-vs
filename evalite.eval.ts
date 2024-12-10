@@ -109,11 +109,7 @@ evalite("My Eval", {
       {
         input:
           "Extract the contents from this string into json: `Hi, I'm John, 50 years old and a fire fighter!`",
-        expected: `{
-          "name": "John",
-          "age": 50,
-          "occupation": "Firefighter",
-        }`,
+        expected: `{ "name": "John", "age": 50, "occupation": "Firefighter" }`,
       },
       {
         input:
